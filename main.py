@@ -16,10 +16,17 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Internal Server Error: 
 # always means a python error inside of the function that corresponds to
 # the route or "page" you were connecting to in Firefox
+
+def check_credentials():
+    '''
+    returns True if user logged in.
+    '''
+    ## FIXME: IMPLEMENT THIS
+    return False
+
+
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
-    is_logged_in = False
-
     # extract username from database
     con = sqlite3.connect('twitter_clone.db')
     cur = con.cursor()
@@ -47,7 +54,7 @@ async def index(request: Request):
         request=request,
         name="index.html",
         context={
-            "is_logged_in": is_logged_in,
+            "is_logged_in": check_credentials,
             "messages": messages
         }
     )
@@ -55,12 +62,12 @@ async def index(request: Request):
 
 @app.get('/login', response_class=HTMLResponse)
 async def login(request: Request): # can't write doctests for async functions
-    is_logged_in = False
+    is_logged_in = True
     return templates.TemplateResponse(
         request=request,
         name='login.html',
         context={
-            'is_logged_in': is_logged_in,
+            'is_logged_in': check_credentials,
         }
     )
 
@@ -71,7 +78,7 @@ async def logout(request: Request):
         request=request,
         name='logout.html',
         context={
-            'is_logged_in': is_logged_in,
+            'is_logged_in': check_credentials,
         }
     )
 
@@ -82,7 +89,7 @@ async def create_message(request: Request):
         request=request,
         name='create_message.html',
         context={
-            'is_logged_in': is_logged_in,
+            'is_logged_in': check_credentials,
         }
     )
 
@@ -93,7 +100,7 @@ async def create_user(request: Request):
         request=request,
         name='create_user.html',
         context={
-            'is_logged_in': is_logged_in,
+            'is_logged_in': check_credentials,
         }
     )
 
