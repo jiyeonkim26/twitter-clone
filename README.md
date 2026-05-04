@@ -4,7 +4,7 @@ This project is a simple Twitter clone built with **FastAPI**, **Jinja2 template
 
 ![Screenshot of Twitter Clone Webpage](twitterclone.png)
 
-The app allows users to view messages from a database, log in using query parameters, log out by clearing cookies, and access pages for creating users and messages.
+The webpage allows site visitors to view messages from a database, log in using query parameters, log out by clearing cookies, and create users and messages.
 
 ---
 
