@@ -1,0 +1,5 @@
+div {
+    border: 2px solid black; /* Creates the box */
+    padding: 15px;           /* Adds space inside the box */
+    margin: 10px 0;          /* Adds space between boxes */
+}

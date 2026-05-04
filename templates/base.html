@@ -1,29 +1,21 @@
 <html>
     <head>
-        <title></title>
+        <title>Twitter Clone</title>
+        <link rel="stylesheet" href="/static/style.css">
     </head>
     <body>
         <h1>Twitter Clone</h1>
         <ul>
             <li><a href='/'>Home</a></li>
-            {% if is_logged_in == 'True' %}
-            <li><a href='/logout'>Logout</a></li>
+            {% if is_logged_in %}
             <li><a href='/create_message'>Create Message</a></li>
+            <li><a href='/logout'>Logout</a></li>
             {% else %}
             <li><a href='/login'>Login</a></li>
             <li><a href='/create_user'>Create User</a></li>
             {% endif %}
         </ul>
         <hr>
-        {#
-            anything in {%%} is jinja2 code, not html
-            this is a jinja2 comment
-            this file makes changes to every page
-            this is a "templating" lang so everything by
-            default is a string and lang-specific commands
-            have a special syntax; there are no special commands 
-            to build strings; it just happens automatically
-        #}
         {% block content%}
         {% endblock %}
     </body>

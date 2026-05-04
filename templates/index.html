@@ -1,8 +1,15 @@
 {% extends 'base.html' %}
-<!-- extends in jinja2 is like include in python; this is specific to this page -->
 
 {% block content %}
-<h2>Main Page</h2>
+<h2>Twitter Messages Index</h2>
 
-<p> username: {{username}} </p>
+<img src="{{ url_for('static', path='giphy.gif') }}" alt="Twitter GIF" width="300" height="200">
+
+{% for message in messages %}
+    <div>
+        <p><em>@{{ message.username }}</em>, Age: {{ message.age }}</p>
+        <p>{{ message.message }}</p>
+        <p>{{ message.created_at }}</p>
+    </div>
+{% endfor %}
 {% endblock %}
