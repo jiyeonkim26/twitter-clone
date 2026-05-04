@@ -1,3 +1,3 @@
 # Twitter Clone Webpage
 
-![Screenshot of Twitter Clone Webpage](twitter-clone/twitterclone.png)
+![Screenshot of Twitter Clone Webpage](twitterclone.png)
