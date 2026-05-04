@@ -17,13 +17,35 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # always means a python error inside of the function that corresponds to
 # the route or "page" you were connecting to in Firefox
 
-def check_credentials():
+def check_credentials(request: Request):
     '''
-    returns True if user logged in.
+    returns username is user is logged in.
+    if not logged in, return None.
+    "morally" the same as True for loggedin and False for logged out
     '''
-    ## FIXME: IMPLEMENT THIS
-    return False
+    ## Q: HOW TO remember if we are logged in or not.
+    ## A: cookies
+    query_username = request.query_params.get('username')
+    query_password = request.query_params.get('password')
+    print('query_username=', query_username)
+    print('query_password=', query_password)
 
+    cookie_username = request.cookies.get('username')
+    cookie_password = request.cookies.get('password')
+    print('cookie_username=', cookie_username)
+    print('cookie_password=', cookie_password)
+
+    username = cookie_username
+    password = cookie_password
+
+    ## FIXME : this should connect to the db
+    # and check if username/password is in the table
+    if username == 'Trump' and password == '12345':
+        print(f"logged in as {username}")
+        return 'Trump'
+    else:
+        print('not logged in')
+        return None
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
@@ -54,53 +76,56 @@ async def index(request: Request):
         request=request,
         name="index.html",
         context={
-            "is_logged_in": check_credentials,
+            "is_logged_in": check_credentials(request),
+            "username": check_credentials(request),
             "messages": messages
         }
     )
     con.close()
 
+@app.get('/logout', response_class=HTMLResponse)
+async def logout(request: Request):
+    response = templates.TemplateResponse(
+        request=request,
+        name='logout.html',
+    )
+    response.delete_cookie(key='username')
+    response.delete_cookie(key='password')
+    return response
+
 @app.get('/login', response_class=HTMLResponse)
 async def login(request: Request): # can't write doctests for async functions
-    is_logged_in = True
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request=request,
         name='login.html',
         context={
-            'is_logged_in': check_credentials,
+            'is_logged_in': check_credentials(request),
+            "username": check_credentials(request),
         }
     )
-
-@app.get('/logout', response_class=HTMLResponse)
-async def logout(request: Request):
-    is_logged_in = False
-    return templates.TemplateResponse(
-        request=request,
-        name='logout.html',
-        context={
-            'is_logged_in': check_credentials,
-        }
-    )
+    response.set_cookie(key='username', value=request.query_params.get('username'))
+    response.set_cookie(key='password', value=request.query_params.get('password'))
+    return response
 
 @app.get('/create_message', response_class=HTMLResponse)
 async def create_message(request: Request):
-    is_logged_in = True
     return templates.TemplateResponse(
         request=request,
         name='create_message.html',
         context={
-            'is_logged_in': check_credentials,
+            'is_logged_in': check_credentials(request),
+            "username": check_credentials(request),
         }
     )
 
 @app.get('/create_user', response_class=HTMLResponse)
 async def create_user(request: Request):
-    is_logged_in = False
     return templates.TemplateResponse(
         request=request,
         name='create_user.html',
         context={
-            'is_logged_in': check_credentials,
+            'is_logged_in': check_credentials(request),
+            "username": check_credentials(request),
         }
     )
 
