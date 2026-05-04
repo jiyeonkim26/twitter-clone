@@ -10,3 +10,37 @@ img.styled-image {
     margin-right: auto; 
     width: 25%;
 }
+
+/* Dropdown menu bar styling */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    background-color: #1da1f2;
+    overflow: hidden;
+}
+
+/* Make list items line up horizontally */
+ul li {
+    float: left;
+}
+
+/* Style links inside the menu */
+ul li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 18px;
+    text-decoration: none;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+/* Change color when hovering */
+ul li a:hover {
+    background-color: #0d8ddb;
+}
+
+/* Clear the float after the menu */
+hr {
+    clear: both;
+}
