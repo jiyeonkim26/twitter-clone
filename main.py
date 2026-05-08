@@ -312,7 +312,7 @@ async def create_message(request: Request):
                 # Insert the new message into database, record current time in localtime
                 sql = """
                 INSERT INTO messages (sender_id, message, created_at)
-                VALUES (?, ?, datetime('now', 'localtime'));
+                VALUES (?, ?, datetime('now'));
                 """
 
                 cur.execute(sql, [sender_id, message])
