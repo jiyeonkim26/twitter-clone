@@ -19,33 +19,58 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def check_credentials(request: Request):
     '''
-    returns username is user is logged in.
+    returns username if user is logged in.
     if not logged in, return None.
-    "morally" the same as True for loggedin and False for logged out
     '''
-    ## Q: HOW TO remember if we are logged in or not.
-    ## A: cookies
+    # Check values typed into the login form / URL
     query_username = request.query_params.get('username')
     query_password = request.query_params.get('password')
     print('query_username=', query_username)
     print('query_password=', query_password)
 
+    # Check values saved in browser cookies
     cookie_username = request.cookies.get('username')
     cookie_password = request.cookies.get('password')
     print('cookie_username=', cookie_username)
     print('cookie_password=', cookie_password)
 
-    username = cookie_username
-    password = cookie_password
-
-    ## FIXME : this should connect to the db
-    # and check if username/password is in the table
-    if username == 'Trump' and password == '12345':
-        print(f"logged in as {username}")
-        return 'Trump'
+    # Prefer the login form values if they exist
+    if query_username is not None and query_password is not None:
+        username = query_username
+        password = query_password
     else:
-        print('not logged in')
+        username = cookie_username
+        password = cookie_password
+
+    # If there is no username/password from either place, user is not logged in
+    if username is None or password is None:
+        print("no username/password found")
         return None
+
+    # Check username/password against database
+    con = sqlite3.connect('twitter_clone.db')
+    cur = con.cursor()
+
+    sql = """
+    SELECT username
+    FROM users
+    WHERE username = ? AND password = ?;
+    """
+
+    cur.execute(sql, [username, password])
+    row = cur.fetchone()
+
+    con.close()
+
+    # If no matching user was found
+    if row is None:
+        print("username/password did not match database")
+        return None
+
+    # If a matching user was found
+    username = row[0]
+    print(f"logged in as {username}")
+    return username
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
