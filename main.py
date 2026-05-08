@@ -96,7 +96,23 @@ def username_exists(username):
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
-    # extract username from database
+    username = check_credentials(request)
+
+    # Get the current page from the URL.
+    page = request.query_params.get('page')
+
+    if page is None:
+        page = 1
+    else:
+        page = int(page)
+
+    # Prevent invalid pages like page=0 or page=-3.
+    if page < 1:
+        page = 1
+
+    limit = 50
+    offset = (page - 1) * limit
+
     con = sqlite3.connect('twitter_clone.db')
     cur = con.cursor()
 
@@ -104,11 +120,14 @@ async def index(request: Request):
     SELECT users.username, users.age, messages.message, messages.created_at
     FROM messages
     JOIN users ON messages.sender_id = users.id
-    ORDER BY messages.created_at DESC;
+    ORDER BY messages.created_at DESC
+    LIMIT ?
+    OFFSET ?;
     """
 
-    cur.execute(sql)
+    cur.execute(sql, [limit, offset])
     rows = cur.fetchall()
+
     messages = []
 
     for row in rows:
@@ -119,16 +138,22 @@ async def index(request: Request):
             "created_at": row[3]
         })
 
+    con.close()
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
-            "is_logged_in": check_credentials(request),
-            "username": check_credentials(request),
-            "messages": messages
+            "is_logged_in": username,
+            "username": username,
+            "messages": messages,
+            "page": page,
+            "next_page": page + 1,
+            "previous_page": page - 1,
+            "has_previous": page > 1,
+            "has_next": len(messages) == limit
         }
     )
-    con.close()
 
 @app.get('/logout', response_class=HTMLResponse)
 async def logout(request: Request):

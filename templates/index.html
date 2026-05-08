@@ -6,10 +6,28 @@
 <img src="{{ url_for('static', path='giphy.gif') }}" class="styled-image" alt="Twitter GIF">
 
 {% for message in messages %}
-    <div>
+    <div class="messages">
         <p><em>@{{ message.username }}</em>, Age: {{ message.age }}</p>
         <p>{{ message.message }}</p>
         <p>{{ message.created_at }}</p>
     </div>
+    
 {% endfor %}
+
+<div class="pagination">
+    {% if has_previous %}
+        <a href="/?page={{ previous_page }}">
+            <button>Previous</button>
+        </a>
+    {% endif %}
+
+    <span>Page {{ page }}</span>
+
+    {% if has_next %}
+        <a href="/?page={{ next_page }}">
+            <button>Next</button>
+        </a>
+    {% endif %}
+</div>
+
 {% endblock %}
