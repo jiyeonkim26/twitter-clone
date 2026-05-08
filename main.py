@@ -3,7 +3,7 @@ Starts a Twitter Clone Webpage.
 '''
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import sqlite3
@@ -72,6 +72,32 @@ def check_credentials(request: Request):
     print(f"logged in as {username}")
     return username
 
+def username_exists(username):
+    """
+    Returns True if username is already in the database.
+    Returns False otherwise.
+    """
+    # Check username against database
+    con = sqlite3.connect('twitter_clone.db')
+    cur = con.cursor()
+
+    sql = """
+    SELECT id
+    FROM users
+    WHERE username = ?;
+    """
+
+    cur.execute(sql, [username])
+    row = cur.fetchone()
+
+    con.close()
+
+    # If no matching username is found, return False (else True)
+    if row is None:
+        return False
+    else:
+        return True
+
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
     # extract username from database
@@ -120,34 +146,110 @@ async def logout(request: Request):
 
 @app.get('/login', response_class=HTMLResponse)
 async def login(request: Request): # can't write doctests for async functions
-    response = templates.TemplateResponse(
-        request=request,
-        name='login.html',
-        context={
-            'is_logged_in': check_credentials(request),
-            "username": check_credentials(request),
-        }
-    )
+    query_username = request.query_params.get('username')
+    query_password = request.query_params.get('password')
+
+    # Page was opened normally, before the form was submitted
+    if query_username is None and query_password is None:
+        return templates.TemplateResponse(
+            request=request,
+            name='login.html',
+            context={
+                'is_logged_in': False,
+                'username': None,
+                'error': None,
+            }
+        )
+
+    # Form was submitted, but username or password was blank
+    if not query_username or not query_password:
+        return templates.TemplateResponse(
+            request=request,
+            name='login.html',
+            context={
+                'is_logged_in': False,
+                'username': None,
+                'error': 'Please enter both a username and password.',
+            }
+        )
+
+    # Use check_credentials to check the database
+    username = check_credentials(request)
+
+    # If username is None, the database did not find a match
+    if username is None:
+        return templates.TemplateResponse(
+            request=request,
+            name='login.html',
+            context={
+                'is_logged_in': False,
+                'username': None,
+                'error': 'Invalid username or password.',
+            }
+        )
+
+    # If username is not None, login succeeded
+    response = RedirectResponse(url='/', status_code=302)
     response.set_cookie(key='username', value=request.query_params.get('username'))
     response.set_cookie(key='password', value=request.query_params.get('password'))
     return response
+
+@app.get('/create_user', response_class=HTMLResponse)
+async def create_user(request: Request):
+    username = request.query_params.get('username')
+    password = request.query_params.get('password')
+    confirm_password = request.query_params.get('confirm_password')
+    age = request.query_params.get('age')
+
+    error = None
+
+    # if incomplete fields, non-matching passwords, and pre-existing usernames
+    if username is not None:
+        if username == "" or password == "" or confirm_password == "" or age == "":
+            error = "Please fill out all fields."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif username_exists(username):
+            error = "That username is already taken. Please choose another one."
+
+        # connect to database and insert fields if no error
+        else:
+            con = sqlite3.connect('twitter_clone.db')
+            cur = con.cursor()
+
+            sql = """
+            INSERT INTO users (username, password, age)
+            VALUES (?, ?, ?);
+            """
+
+            cur.execute(sql, [username, password, age])
+            con.commit()
+            con.close()
+
+            # takes user to login page after creating account
+            return templates.TemplateResponse(
+                request=request,
+                name='login.html',
+                context={
+                    'error': "Account created! Please log in.",
+                    'is_logged_in': False
+                }
+            )
+
+    return templates.TemplateResponse(
+        request=request,
+        name='create_user.html',
+        context={
+            'error': error,
+            'is_logged_in': False
+        }
+    )
 
 @app.get('/create_message', response_class=HTMLResponse)
 async def create_message(request: Request):
     return templates.TemplateResponse(
         request=request,
         name='create_message.html',
-        context={
-            'is_logged_in': check_credentials(request),
-            "username": check_credentials(request),
-        }
-    )
-
-@app.get('/create_user', response_class=HTMLResponse)
-async def create_user(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name='create_user.html',
         context={
             'is_logged_in': check_credentials(request),
             "username": check_credentials(request),
