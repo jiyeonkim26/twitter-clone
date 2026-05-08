@@ -203,7 +203,7 @@ async def create_user(request: Request):
 
     error = None
 
-    # if incomplete fields, non-matching passwords, and pre-existing usernames
+    # If incomplete fields, non-matching passwords, and pre-existing usernames
     if username is not None:
         if username == "" or password == "" or confirm_password == "" or age == "":
             error = "Please fill out all fields."
@@ -212,7 +212,7 @@ async def create_user(request: Request):
         elif username_exists(username):
             error = "That username is already taken. Please choose another one."
 
-        # connect to database and insert fields if no error
+        # Connects to database and inserts fields if no error
         else:
             con = sqlite3.connect('twitter_clone.db')
             cur = con.cursor()
@@ -226,7 +226,7 @@ async def create_user(request: Request):
             con.commit()
             con.close()
 
-            # takes user to login page after creating account
+            # Takes user to login page after creating account
             return templates.TemplateResponse(
                 request=request,
                 name='login.html',
@@ -247,12 +247,67 @@ async def create_user(request: Request):
 
 @app.get('/create_message', response_class=HTMLResponse)
 async def create_message(request: Request):
+    username = check_credentials(request)
+    message = request.query_params.get('message')
+
+    error = None
+    success = None
+
+    # If user is not logged in, send them to login page
+    if username is None:
+        return templates.TemplateResponse(
+            request=request,
+            name='login.html',
+            context={
+                'error': 'Please log in before creating a message.',
+                'is_logged_in': False
+            }
+        )
+
+    # If the user submitted the form
+    if message is not None:
+        if message == "":
+            error = "Message cannot be blank."
+        else:
+            con = sqlite3.connect('twitter_clone.db')
+            cur = con.cursor()
+
+            # Find the id of the logged-in user
+            sql = """
+            SELECT id
+            FROM users
+            WHERE username = ?;
+            """
+
+            cur.execute(sql, [username])
+            row = cur.fetchone()
+
+            if row is None:
+                error = "Could not find logged-in user in database."
+            else:
+                sender_id = row[0]
+
+                # Insert the new message into database, record current time in localtime
+                sql = """
+                INSERT INTO messages (sender_id, message, created_at)
+                VALUES (?, ?, datetime('now', 'localtime'));
+                """
+
+                cur.execute(sql, [sender_id, message])
+                con.commit()
+
+                success = "Message created!"
+
+            con.close()
+
     return templates.TemplateResponse(
         request=request,
         name='create_message.html',
         context={
-            'is_logged_in': check_credentials(request),
-            "username": check_credentials(request),
+            'is_logged_in': username,
+            'username': username,
+            'error': error,
+            'success': success
         }
     )
 

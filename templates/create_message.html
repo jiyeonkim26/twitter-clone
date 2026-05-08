@@ -2,4 +2,19 @@
 
 {% block content %}
 <h2>Create Message</h2>
+
+{% if error %}
+    <p style="color: red;">{{ error }}</p>
+{% endif %}
+
+{% if success %}
+    <p style="color: green;">{{ success }}</p>
+{% endif %}
+
+<form action="/create_message" method="get">
+    <label>Tweet tweet:</label>
+    <input type="text" name="message">
+
+    <button type="submit">Post Message</button>
+</form>
 {% endblock %}
