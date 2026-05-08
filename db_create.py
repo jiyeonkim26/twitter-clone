@@ -54,7 +54,7 @@ con.commit()
 # insert some dummy data
 sql = '''
 insert into messages (sender_id,message,created_at) values
-    (1, 'I''m a baby', '2021-11-14 14:30:00'),
+    (1, 'I''m a""" baby', '2021-11-14 14:30:00'),
     (2, 'I''m a baby', '2021-11-14 14:30:00'),
     (3, 'I''m a baby', '2021-11-14 14:33:01'),
     (4, 'I''m a baby', '2021-11-15 14:35:45');
