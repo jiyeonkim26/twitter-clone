@@ -25,14 +25,10 @@ def check_credentials(request: Request):
     # Check values typed into the login form / URL
     query_username = request.query_params.get('username')
     query_password = request.query_params.get('password')
-    print('query_username=', query_username)
-    print('query_password=', query_password)
 
     # Check values saved in browser cookies
     cookie_username = request.cookies.get('username')
     cookie_password = request.cookies.get('password')
-    print('cookie_username=', cookie_username)
-    print('cookie_password=', cookie_password)
 
     # Prefer the login form values if they exist
     if query_username is not None and query_password is not None:
@@ -236,6 +232,7 @@ async def create_user(request: Request):
                 }
             )
 
+    # Default for create user page
     return templates.TemplateResponse(
         request=request,
         name='create_user.html',
@@ -300,6 +297,7 @@ async def create_message(request: Request):
 
             con.close()
 
+    # Default for create message page
     return templates.TemplateResponse(
         request=request,
         name='create_message.html',
